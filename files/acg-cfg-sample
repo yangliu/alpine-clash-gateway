@@ -1,0 +1,29 @@
+#acg configuration
+
+# cgroup net_cls classid
+BYPASS_CGROUP_CLASSID=114514
+
+# netfilter mark
+NETFILTER_MARK=114514
+
+# iproute2 rule table id
+IPROUTE2_TABLE_ID=114
+
+# dns redirect
+FORWARD_DNS_REDIRECT=1.0.0.1:53
+
+# geoip mirror (github / aliyun)
+GEOIP_MIRROR=aliyun
+
+# Clash Config URL
+CLASH_CONFIG_URL="https://"
+
+# Clash Path
+CLASH_PATH=/opt/acg/clash
+# Clash Bin Architecture
+CLASH_BIN_ARCH=amd64
+# Clash External Controller
+CLASH_EXTERNAL_CONTROLLER_PORT=9999
+CLASH_EXTERNAL_CONTROLLER_SECRET=999999
+
+

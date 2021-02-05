@@ -1,7 +1,17 @@
 #!/bin/ash
 
 acg_path="/opt/acg"
-. "${acg_path}/files/acg-cfg"
+
+if [ -f "${acg_path}/files/acg-cfg" ]; then
+  . "${acg_path}/files/acg-cfg"
+else
+  if [ -f "${acg_path}/files/acg-cfg-sample" ]; then
+    . "${acg_path}/files/acg-cfg-sample"
+  else
+    echo "The configuration file is missing. Please re-run the installation script."
+    exit 1
+  fi
+fi
 
 is_acg_running() {
   if [ -f /run/acg.pid ]; then
@@ -9,11 +19,6 @@ is_acg_running() {
   else
     return 1
   fi
-}
-
-is_acg_installed() {
-  # on alpine
-  break
 }
 
 set_acg_cfg(){
