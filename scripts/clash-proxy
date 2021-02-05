@@ -1,0 +1,5 @@
+#!/bin/ash
+
+/opt/acg/scripts/bypass-proxy-pid $$ 2>&1 > /dev/null
+
+exec "$@"

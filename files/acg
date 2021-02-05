@@ -1,0 +1,28 @@
+#!/sbin/openrc-run
+
+. /opt/acg/files/acg-cfg
+
+command="/opt/acg/scripts/clash-proxy"
+command_args="${CLASH_PATH}/clash -d ${CLASH_PATH}"
+command_background=true
+pidfile="/run/${RC_SVCNAME}.pid"
+name="Alpine Clash Gateway"
+description="Alpine Clash Gateway start-up script for OpenRC"
+
+depend() {
+	need net
+	use dns
+}
+
+start_pre() {
+	/opt/acg/scripts/setup-cgroup.sh
+	/opt/acg/scripts/modify-config.sh
+}
+start_post() {
+	/opt/acg/scripts/proxy-selected.sh load
+}
+
+stop_pre() {
+	/opt/acg/scripts/proxy-selected.sh save
+}
+

@@ -1,0 +1,2 @@
+SUBSYSTEM=="net",ENV{INTERFACE}=="utun",ACTION=="add",RUN+="/opt/acg/scripts/setup-tun.sh"
+SUBSYSTEM=="net",ENV{INTERFACE}=="utun",ACTION=="remove",RUN+="/opt/acg/scripts/clean-tun.sh"
