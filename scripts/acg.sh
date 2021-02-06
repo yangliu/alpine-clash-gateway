@@ -243,7 +243,7 @@ do_install_acg() {
     do_set_clash_ec
     do_1_key_update
 
-    rc-update --quite add acg
+    rc-update --quiet add acg
 
     echo "ACG has been installed."
     echo "Please set the client Gateway and DNS to the ip address of this host."
