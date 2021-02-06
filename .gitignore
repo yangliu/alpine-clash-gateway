@@ -1,5 +1,6 @@
 /clash
 /files/acg-cfg
+dev-*
 
 # General
 .DS_Store
