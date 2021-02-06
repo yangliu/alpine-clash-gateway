@@ -21,18 +21,6 @@ is_acg_running() {
   fi
 }
 
-set_acg_cfg(){
-  acg_cfg_file="${acg_path}/files/acg-cfg"
-  grep "${1}=" $acg_cfg_file >/dev/null
-  if [ $? -eq 0 ]; then
-    sed -i "s/${1}=.*$/${1}=${2}/g" $acg_cfg_file
-  else
-    echo "Cannot find '${1}' in ${acg_cfg_file}."
-    exit 1
-  fi
-}
-
-
 do_update_clash_cfg() {
   ${acg_path}/scripts/update-clash.sh config
   es=$?
@@ -146,21 +134,31 @@ do_restart_clash() {
   fi
 }
 
+set_acg_cfg(){
+  acg_cfg_file="${acg_path}/files/acg-cfg"
+  grep "${1}=" $acg_cfg_file >/dev/null
+  if [ $? -eq 0 ]; then
+    ESCAPED_KEYWORD=$(printf '%s\n' "${2}" | sed -e 's/[]\/$*.^[]/\\&/g');
+    sed -i "s/${1}=.*$/${1}=${ESCAPED_KEYWORD}/g" $acg_cfg_file
+  else
+    echo "Cannot find '${1}' in ${acg_cfg_file}."
+    return 1
+  fi
+}
+
 do_set_acg_cfg() {
   acg_cfg_file="${acg_path}/files/acg-cfg"
-  old_arch=$(eval echo \${$3})
-  u_arch=$(whiptail --title "$1" --inputbox "$2" 10 60 "${old_arch}" 3>&1 1>&2 2>&3)
+  old_value=$(eval echo \${$3})
+  u_value=$(whiptail --title "$1" --inputbox "$2" 10 60 "${old_value}" 3>&1 1>&2 2>&3)
   es=$?
-  if [ $es = 0 ] && [[ "${u_arch}" != "${old_arch}" ]]; then
-    set_acg_cfg "$3" "${u_arch}"
+  if [ $es = 0 ] && [[ "${u_value}" != "${old_value}" ]]; then
+    set_acg_cfg "$3" "${u_value}"
     if [ $? -eq 0 ]; then
       whiptail --title "$1" --msgbox "${3} has been updated." 10 60
       . ${acg_cfg_file}
     else
       whiptail --title "$1" --msgbox "Failed to update ${3}." 10 60
     fi
-  else
-    whiptail --title "$1" --msgbox "Nothing has changed." 10 60
   fi
 }
 
@@ -318,7 +316,9 @@ show_main() {
   exit 0
 }
 
-if [ "$#" > 1 ]; then
+if [ -z "$1" ]; then
+  show_main
+else
   case "$1" in
   install)
               do_install_acg
@@ -329,6 +329,4 @@ if [ "$#" > 1 ]; then
               exit 1
             ;;
   esac
-else
-  show_main
 fi
