@@ -15,7 +15,6 @@ unzip /tmp/acg.zip -d /tmp
 cp -R /tmp/alpine-clash-gateway-main/* "${acg_path}/"
 escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
 sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/files/acg"
-sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/scripts/*.sh"
+sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" ${acg_path}/scripts/*.sh
 chmod +x "${acg_path}/scripts/acg.sh"
 ${acg_path}/scripts/acg.sh install
-
