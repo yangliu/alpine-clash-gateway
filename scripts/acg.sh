@@ -192,15 +192,15 @@ do_install_acg() {
   # check configure file
   if [ -f "${acg_path}/files/acg-cfg" ]; then
     if (whiptail --title "Alpine Clash Gateway" --yesno "You already have an ACG configuration file in your system. Continue installation may loss all your original settings. Do you want to continue?" 10 60) then
-      [ -f "${acg_path}/files/acg-cfg-sample" ] && cp "${acg_path}/files/acg-cfg-sample" "${acg_path}/files/acg-cfg"
+      :
     else
       exit 1
     fi
-  else
-    cp "${acg_path}/files/acg-cfg-sample" "${acg_path}/files/acg-cfg"
-    set_acg_cfg "CLASH_PATH" "${acg_path}/clash"
-    . "${acg_path}/files/acg-cfg"
   fi
+
+  cp "${acg_path}/files/acg-cfg-sample" "${acg_path}/files/acg-cfg"
+  set_acg_cfg "CLASH_PATH" "${acg_path}/clash"
+  . "${acg_path}/files/acg-cfg"
 
   if (whiptail --title "Alpine Clash Gateway" --yesno "This script will install Alpine Clash Gateway (ACG). It will turn your Alpine Linux host into a Clash gateway. Do you want to continue?" 10 60) then
     echo "Install all dependent packages"
