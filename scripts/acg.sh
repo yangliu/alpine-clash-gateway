@@ -259,7 +259,7 @@ do_install_acg() {
 do_uninstall_acg() {
   if (whiptail --title "Alpine Clash Gateway" --yesno "This script will remove Alpine Clash Gateway (ACG) from your system. Do you want to continue?" 10 60) then
     do_start_stop_clash
-    rc-update --quite del acg
+    rc-update --quiet del acg
     rm /etc/init.d/acg
     rm /etc/udev/rules.d/99-clash.rules
     rm -rf "${acg_path}"
