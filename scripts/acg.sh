@@ -318,7 +318,7 @@ show_main() {
 
 if [ $# -gt 1 ]; then
   case "$1" in
-  "install")
+  install)
               do_install_acg
             ;;
 
