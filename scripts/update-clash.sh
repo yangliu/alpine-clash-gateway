@@ -135,7 +135,7 @@ clash(){
   
 }
 
-if [ ! -d "${CLASH_PATH}"]; then
+if [ ! -d "${CLASH_PATH}" ]; then
   mkdir -p "${CLASH_PATH}"
 fi
 
