@@ -12,6 +12,13 @@ fi
 # Load Version
 . "${acg_path}/files/version"
 
+verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte $1 $2
+}
+
 geoip(){
   if [ "${GEOIP_MIRROR}" == 'aliyun' ]; then
     geoip_db_url="http://www.ideame.top/mmdb/Country.mmdb"
@@ -145,6 +152,56 @@ clash(){
   
 }
 
+yacd() {
+  yacd_version_file="${CLASH_PATH}/version_yacd"
+  if [ ! -f "${yacd_version_file}" ]; then
+    echo 0 > ${yacd_version_file}
+  fi
+  local_yacd_version=$(cat "${yacd_version_file}")
+  [ -f /tmp/yacd_release.json ] && rm /tmp/yacd_release.json
+  curl -s -o /tmp/yacd_release.json https://api.github.com/repos/haishanh/yacd/releases/latest
+  if [ ! -f /tmp/yacd_release.json ]; then
+    echo "Failed to get the release information of YACD."
+    exit 1
+  fi
+  remote_yacd_version=$(jq '.name' /tmp/yacd_release.json | tr -d '"' | tr -d 'v')
+  if (verlt "${local_yacd_version}" "${remote_yacd_version}") then
+    echo "Found a new version of YACD."
+  else
+    echo "YACD is up to date."
+    exit 2
+  fi
+
+  remote_yacd_download_url=$(jq '.assets[0].browser_download_url' /tmp/yacd_release.json | tr -d '"')
+  rm /tmp/yacd_release.json
+  echo "Start download YACD v${remote_yacd_version} from ${remote_yacd_download_url}..."
+  [ -f "/tmp/yacd.tar.xz" ] && rm "/tmp/yacd.tar.xz"
+  curl -L -# -o "/tmp/yacd.tar.xz" "${remote_yacd_download_url}"
+  if [ ! -f "/tmp/yacd.tar.xz" ]; then
+    echo "Failed to download YACD."
+    echo "Please download and upload it to ${CLASH_PATH}/ui manually."
+    exit 1
+  fi
+  [ -d "/tmp/yacd" ] && rm -rf "/tmp/yacd"
+  mkdir "/tmp/yacd"
+  tar xJ -f /tmp/yacd.tar.xz -C /tmp/yacd
+  if [ $? -ne 0 ]; then
+    echo "Failed to download YACD."
+    echo "Please download and upload it to ${CLASH_PATH}/ui manually."
+    rm /tmp/yacd.tar.xz
+    rm -rf /tmp/yacd
+    exit 1
+  fi
+  rm /tmp/yacd.tar.xz
+  [ -d "${CLASH_PATH}/${CLASH_EXTERNAL_CONTROLLER_UI}" ] && rm -rf "${CLASH_PATH}/${CLASH_EXTERNAL_CONTROLLER_UI}"
+  mkdir -p "${CLASH_PATH}/${CLASH_EXTERNAL_CONTROLLER_UI}"
+  cp -R /tmp/yacd/public/* "${CLASH_PATH}/${CLASH_EXTERNAL_CONTROLLER_UI}/"
+  rm -rf /tmp/yacd
+  echo "${remote_yacd_version}" > "${yacd_version_file}"
+  echo "YACD has been updated."
+
+}
+
 if [ ! -d "${CLASH_PATH}" ]; then
   mkdir -p "${CLASH_PATH}"
 fi
@@ -159,6 +216,9 @@ clash)
     ;;
 config)
         config
+    ;;
+yacd)
+        yacd
     ;;
 
 esac

@@ -79,6 +79,20 @@ do_update_clash_geoip() {
   fi
 }
 
+do_update_yacd() {
+  ${acg_path}/scripts/update-clash.sh yacd
+  es=$?
+  if [ $es = 0 ]; then
+      whiptail --title "ACG Updater" --msgbox "YACD has been updated successfully." 10 60
+  else
+    if [ $es = 2 ]; then
+      whiptail --title "ACG Updater" --msgbox "YACD is up to date." 10 60
+    else
+      whiptail --title "ACG Updater" --msgbox "Failed to update YACD. Please check your internet or update it manually." 10 60
+    fi
+  fi
+}
+
 do_1_key_update() {
   updated_cfg=0
   updated_clash=0
@@ -98,6 +112,7 @@ do_1_key_update() {
   if [ $es -eq 0 ]; then
     updated_geoip=1
   fi
+  ${acg_path}/scripts/update-clash.sh yacd
 
   need_restart_clash=0
   updated_str=""
@@ -177,6 +192,7 @@ do_set_clash_cfg_url() {
 do_set_clash_ec() {
   do_set_acg_cfg "Clash External Controller" "Please enter the port of Clash external-controller." "CLASH_EXTERNAL_CONTROLLER_PORT"
   do_set_acg_cfg "Clash External Controller" "Please enter the secret of Clash external-controller." "CLASH_EXTERNAL_CONTROLLER_SECRET"
+  do_set_acg_cfg "Clash External Controller" "Please enter the relative path of Clash external-controller-ui." "CLASH_EXTERNAL_CONTROLLER_UI"
 }
 
 do_install_acg() {
@@ -305,6 +321,7 @@ show_main() {
   "A" "One-key Update (config.yaml, clash, & geoip)" \
   "2" "Update Clash core" \
   "3" "Update GeoIP database" \
+  "Y" "Update YACD" \
   "4" "${opt_4_text}" \
   "5" "Restart Clash" \
   "6" "Set Architecture" \
@@ -328,6 +345,9 @@ show_main() {
       ;;
     3)
           do_update_clash_geoip
+      ;;
+    Y)
+          do_update_yacd
       ;;
     4)
           do_start_stop_clash

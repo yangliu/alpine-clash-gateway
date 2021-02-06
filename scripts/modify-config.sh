@@ -20,8 +20,9 @@ fi
 
 set_cfg_value(){
   grep "${1}:" $CLASH_CONFIG >/dev/null
+  ESCAPED_KEYWORD=$(printf '%s\n' "${2}" | sed -e 's/[]\/$*.^[]/\\&/g');
   if [ $? -eq 0 ]; then
-    sed -i "s/${1}:.*$/${1}: ${2}/g" $CLASH_CONFIG
+    sed -i "s/${1}:.*$/${1}: ${ESCAPED_KEYWORD}/g" $CLASH_CONFIG
   else
     echo "Cannot find '${1}' in ${CLASH_CONFIG}."
     exit 1
@@ -30,3 +31,4 @@ set_cfg_value(){
 
 set_cfg_value "external-controller" ":${CLASH_EXTERNAL_CONTROLLER_PORT}"
 set_cfg_value "secret" "${CLASH_EXTERNAL_CONTROLLER_SECRET}"
+set_cfg_value "external-ui" "${CLASH_EXTERNAL_CONTROLLER_UI}"
