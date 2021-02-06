@@ -16,7 +16,7 @@ geoip(){
   geoip_db_file="${CLASH_PATH}/Country.mmdb"
   [ -f "${geoip_version_file}" ] && local_geoip_version=$(cat "${geoip_version_file}")
   [ ! -f "${geoip_db_file}" ] && local_geoip_version=19700101
-  if [ $(date -d "${local_geoip_version}0000" +%s) < $(date -d "${remote_geoip_version}0000" +%s) ]; then
+  if [ $(date -d "${local_geoip_version}0000" +%s) -lt $(date -d "${remote_geoip_version}0000" +%s) ]; then
     if [ -f ${geoip_db_file} ]; then
       echo "Updating geoip database from ${geoip_db_url}..."
       rm "${geoip_db_file}"
@@ -84,7 +84,7 @@ clash(){
     exit 1
   fi
   remote_clash_version=$(jq '.name' /tmp/clash_premium_release.json | tr -d '"' | awk '{print $2}')
-  if [ $(date -d "${local_clash_version}-00:00" +%s) >= $(date -d "${remote_clash_version}-00:00" +%s)  ]; then
+  if [ $(date -d "${local_clash_version}-00:00" +%s) -ge $(date -d "${remote_clash_version}-00:00" +%s)  ]; then
     echo "Clash Premium ${local_clash_version} is up to date."
     exit 2
   else
