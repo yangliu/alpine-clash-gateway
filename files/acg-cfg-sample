@@ -19,7 +19,7 @@ GEOIP_MIRROR=aliyun
 CLASH_CONFIG_URL="https://"
 
 # Clash Path
-CLASH_PATH=/opt/acg/clash
+CLASH_PATH=|ACG_PATH|/clash
 # Clash Bin Architecture
 CLASH_BIN_ARCH=amd64
 # Clash External Controller

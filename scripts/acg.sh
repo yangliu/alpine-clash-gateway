@@ -2,6 +2,7 @@
 
 acg_path="/opt/acg"
 
+# Load Configuration
 if [ -f "${acg_path}/files/acg-cfg" ]; then
   . "${acg_path}/files/acg-cfg"
 else
@@ -12,6 +13,9 @@ else
     exit 1
   fi
 fi
+# Load Version
+. "${acg_path}/files/version"
+
 
 is_acg_running() {
   if [ -f /run/acg.pid ]; then
@@ -176,6 +180,7 @@ do_set_clash_ec() {
 }
 
 do_install_acg() {
+  escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
   # check newt
   if [ ! -f /usr/bin/whiptail ]; then
     echo "Install newt"
@@ -193,6 +198,7 @@ do_install_acg() {
     fi
   else
     cp "${acg_path}/files/acg-cfg-sample" "${acg_path}/files/acg-cfg"
+    sed -i "s/|ACG_PATH|/${escaped_acg_path}/g" "${acg_path}/files/acg-cfg"
   fi
 
   if (whiptail --title "Alpine Clash Gateway" --yesno "This script will install Alpine Clash Gateway (ACG). It will turn your Alpine Linux host into a Clash gateway. Do you want to continue?" 10 60) then
@@ -221,12 +227,14 @@ do_install_acg() {
     rc-service udev-trigger start
     rc-service udev-settle start
 
-    echo "Install Alpine Clash Gateway to /opt/acg"
+    echo "Install Alpine Clash Gateway to ${acg_path}"
     mkdir -p "${acg_path}"
-    # download files
-    chmod -R +x /opt/acg/files/acg /opt/acg/scripts
-    ln -s /opt/acg/files/99-clash.rules /etc/udev/rules.d/
-    ln -s /opt/acg/files/acg /etc/init.d/
+    chmod -R +x "${acg_path}/files/acg" "${acg_path}/scripts"
+
+    cp "${acg_path}/files/99-clash.rules.orig" "/etc/udev/rules.d/99-clash.rules"
+    sed -i "s/|ACG_PATH|/${escaped_acg_path}/g" /etc/udev/rules.d/99-clash.rules
+    
+    ln -s "${acg_path}/files/acg" /etc/init.d/
 
     echo "Now we need to configure ACG."
 
@@ -234,10 +242,41 @@ do_install_acg() {
     do_set_arch
     do_set_clash_ec
     do_1_key_update
+
+    rc-update --quite add acg
+
+    echo "ACG has been installed."
+    echo "Please set the client Gateway and DNS to the ip address of this host."
+    echo "You can configure ACG with the following command"
+    echo "${acg_path}/scripts/acg.sh"
+    exit 0
   else
     break
   fi
 
+}
+
+do_uninstall_acg() {
+  if (whiptail --title "Alpine Clash Gateway" --yesno "This script will remove Alpine Clash Gateway (ACG) from your system. Do you want to continue?" 10 60) then
+    do_start_stop_clash
+    rc-update --quite del acg
+    rm /etc/init.d/acg
+    rm /etc/udev/rules.d/99-clash.rules
+    rm -rf "${acg_path}"
+    echo "ACG has been removed from your system. However, the dependences are left in your system."
+    echo "You can further remove all the dependences with the following commands"
+    echo "rm /etc/modules-load.d/tun.conf"
+    echo "rc-service cgroups stop"
+    echo "rc-update del cgroups"
+    echo "rc-service udev-settle stop"
+    echo "rc-update del udev-settle"
+    echo "rc-service udev-trigger stop"
+    echo "rc-update del udev-trigger"
+    echo "rc-service udev stop"
+    echo "rc-update del udev"
+    echo "apk del newt nftables iproute2 udev curl jq"
+    exit 0
+  fi
 }
 
 
@@ -270,6 +309,7 @@ show_main() {
   "6" "Set Architecture" \
   "7" "Set the URL of Clash configuration" \
   "8" "Set Clash External Controller" \
+  "9" "Uninstall ACG" \
   "10" "About ACG" \
   3>&1 1>&2 2>&3)
   es=$?
@@ -304,8 +344,9 @@ show_main() {
           do_set_clash_ec
       ;;
     9)
-          break
+          do_uninstall_acg
       ;;
+
     10)
           show_about
       ;;

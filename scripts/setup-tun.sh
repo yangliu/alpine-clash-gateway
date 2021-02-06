@@ -1,6 +1,16 @@
 #!/bin/ash
 
-. /opt/acg/files/acg-cfg
+acg_path="/opt/acg"
+
+# Load Configuration
+if [ -f "${acg_path}/files/acg-cfg" ]; then
+  . "${acg_path}/files/acg-cfg"
+else
+  echo "The configuration file is missing. Please re-run the installation script."
+  exit 1
+fi
+# Load Version
+. "${acg_path}/files/version"
 
 ip route replace default dev utun table "$IPROUTE2_TABLE_ID"
 

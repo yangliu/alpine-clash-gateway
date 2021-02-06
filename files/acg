@@ -1,8 +1,18 @@
 #!/sbin/openrc-run
 
-. /opt/acg/files/acg-cfg
+acg_path="/opt/acg"
 
-command="/opt/acg/scripts/clash-proxy"
+# Load Configuration
+if [ -f "${acg_path}/files/acg-cfg" ]; then
+  . "${acg_path}/files/acg-cfg"
+else
+  echo "The configuration file is missing. Please re-run the installation script."
+  exit 1
+fi
+# Load Version
+. "${acg_path}/files/version"
+
+command="${acg_path}/scripts/clash-proxy"
 command_args="${CLASH_PATH}/clash -d ${CLASH_PATH}"
 command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"
@@ -15,14 +25,14 @@ depend() {
 }
 
 start_pre() {
-	/opt/acg/scripts/setup-cgroup.sh
-	/opt/acg/scripts/modify-config.sh
+	${acg_path}/scripts/setup-cgroup.sh
+	${acg_path}/scripts/modify-config.sh
 }
 start_post() {
-	/opt/acg/scripts/proxy-selected.sh load
+	${acg_path}/scripts/proxy-selected.sh load
 }
 
 stop_pre() {
-	/opt/acg/scripts/proxy-selected.sh save
+	${acg_path}/scripts/proxy-selected.sh save
 }
 
