@@ -9,3 +9,7 @@ Quickly convert your Alpine Linux host/vm into a Clash-based gateway.
 ```
 wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@main/scripts/install.sh | sh
 ```
+or
+```
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@main/scripts/install.sh | sh -s /etc/acg
+```
