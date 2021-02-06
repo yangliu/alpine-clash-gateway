@@ -20,7 +20,7 @@ name="Alpine Clash Gateway"
 description="Alpine Clash Gateway start-up script for OpenRC"
 
 depend() {
-	need net
+	need net cgroups udev udev-settle udev-trigger
 	use dns
 }
 
