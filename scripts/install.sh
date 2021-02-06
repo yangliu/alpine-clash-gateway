@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 acg_path="/opt/acg"
 
 wget -O /tmp/acg.zip https://github.com/yangliu/alpine-clash-gateway/archive/main.zip
