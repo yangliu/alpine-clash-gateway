@@ -182,7 +182,7 @@ do_install_acg() {
   if [ ! -f /usr/bin/whiptail ]; then
     echo "Install newt"
     apk add --quiet --update newt
-    if [ $? -ne 0 ]; then
+    if [ $? != 0 ]; then
       echo "Cannot satisfy the requirements. Please check your internet and your apk repositories. Make sure to enable the community repo."
     fi
   fi
@@ -193,18 +193,20 @@ do_install_acg() {
     else
       exit 1
     fi
+  else
+    cp "${acg_path}/files/acg-cfg-sample" "${acg_path}/files/acg-cfg"
   fi
 
   if (whiptail --title "Alpine Clash Gateway" --yesno "This script will install Alpine Clash Gateway (ACG). It will turn your Alpine Linux host into a Clash gateway. Do you want to continue?" 10 60) then
     echo "Install all dependent packages"
     apk add --update nftables iproute2 udev curl jq
-    if [ $? -ne 0 ]; then
+    if [ $? != 0 ]; then
       echo "Cannot satisfy the requirements. Please check your internet and your apk repositories. Make sure to enable the community repo."
     fi
     
     echo "Enable tun"
     lsmod | grep tun > /dev/null
-    if [ $? -ne 0 ]; then
+    if [ $? != 0 ]; then
       echo "tun" > /etc/modules-load.d/tun.conf
       modprobe tun
     fi
@@ -316,7 +318,7 @@ show_main() {
   exit 0
 }
 
-if [ $# -gt 1 ]; then
+if [ "$#" > 1 ]; then
   case "$1" in
   install)
               do_install_acg

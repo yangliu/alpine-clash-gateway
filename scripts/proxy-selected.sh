@@ -26,7 +26,7 @@ load(){
   fi
   # waiting for clash to start up
   i=1
-  while [ $i -lt 10 ]; do
+  while [ $i < 10 ]; do
     sleep 1
     test=$(curl -s -H "Authorization: Bearer ${CLASH_EXTERNAL_CONTROLLER_SECRET}" http://localhost:${CLASH_EXTERNAL_CONTROLLER_PORT})
     [ -n "$test" ] && i=10
