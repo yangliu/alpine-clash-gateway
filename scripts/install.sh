@@ -8,6 +8,8 @@ fi
 
 [ ! -d "${acg_path}" ] && mkdir -p "${acg_path}"
 
+[ -f /tmp/acg.zip ] && rm /tmp/acg.zip
+[ -d /tmp/alpine-clash-gateway-main ] && rm -rf /tmp/alpine-clash-gateway-main
 wget -O /tmp/acg.zip https://github.com/yangliu/alpine-clash-gateway/archive/main.zip
 unzip /tmp/acg.zip -d /tmp
 cp -R /tmp/alpine-clash-gateway-main/* "${acg_path}/"
