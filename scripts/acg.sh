@@ -194,6 +194,7 @@ do_set_clash_ec() {
   do_set_acg_cfg "Clash External Controller" "Please enter the secret of Clash external-controller." "CLASH_EXTERNAL_CONTROLLER_SECRET"
   do_set_acg_cfg "Clash External Controller" "Please enter the relative path of Clash external-controller-ui." "CLASH_EXTERNAL_CONTROLLER_UI"
 }
+
 do_set_auto_lbu_ci() {
     if (whiptail --title "Auto LBU Commit" --yesno "Do you wish to do lbu commit as ACG stops?" 10 60 3>&1 1>&2 2>&3) then
       set_acg_cfg "AUTO_LBU_CI" "1"
@@ -201,6 +202,17 @@ do_set_auto_lbu_ci() {
       set_acg_cfg "AUTO_LBU_CI" "0"
     fi
     . "${acg_path}/files/acg-cfg"
+}
+
+do_lbu_ci() {
+  if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
+    lbu ci
+    if [ $? -eq 0 ]; then
+      whiptail --title "LBU Commit" --msgbox "LBU Commit successfully." 10 60
+    else
+      whiptail --title "LBU Commit" --msgbox "Failed to do LBU Commit." 10 60
+    fi
+  fi
 }
 
 do_install_acg() {
@@ -356,6 +368,7 @@ show_main() {
   "Y" "Update YACD" \
   "4" "${opt_4_text}" \
   "5" "Restart Clash" \
+  "C" "LBU Commit" \
   "7" "Set the URL of Clash configuration" \
   "8" "Set Clash External Controller" \
   "L" "Set Auto LBU Commit" \
@@ -399,6 +412,9 @@ show_main() {
       ;;
     L)
           do_set_auto_lbu_ci
+      ;;
+    C)
+          do_lbu_ci
       ;;
     9)
           do_uninstall_acg
