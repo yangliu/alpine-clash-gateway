@@ -291,6 +291,7 @@ do_install_acg() {
         if (whiptail --title "ACG Installation" --yesno "ACG has been installed and running. Do you wish to do lbu commit to save the changes to your system?" 10 60 3>&1 1>&2 2>&3) then
           lbu ci
         fi
+      fi
     fi
 
     echo "ACG has been installed."
