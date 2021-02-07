@@ -194,6 +194,14 @@ do_set_clash_ec() {
   do_set_acg_cfg "Clash External Controller" "Please enter the secret of Clash external-controller." "CLASH_EXTERNAL_CONTROLLER_SECRET"
   do_set_acg_cfg "Clash External Controller" "Please enter the relative path of Clash external-controller-ui." "CLASH_EXTERNAL_CONTROLLER_UI"
 }
+do_set_auto_lbu_ci() {
+    if (whiptail --title "Auto LBU Commit" --yesno "Do you wish to do lbu commit as ACG stops?" 10 60 3>&1 1>&2 2>&3) then
+      set_acg_cfg "AUTO_LBU_CI" "1"
+    else
+      set_acg_cfg "AUTO_LBU_CI" "0"
+    fi
+    . "${acg_path}/files/acg-cfg"
+}
 
 do_install_acg() {
   escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
@@ -255,6 +263,20 @@ do_install_acg() {
 
     echo "Now we need to configure ACG."
 
+    # diskless mode
+    "${acg_path}/files/acg-cfg"
+    
+    if (whiptail --title "Diskless Mode" --yes-button "Diskless Mode" --no-button "Sys Mode" --yesno "Is your Alpine installation in Diskless Mode?" 10 60 3>&1 1>&2 2>&3) then
+      set_acg_cfg "ALPINE_INSTALLATION_MODE" "diskless"
+      if ! case ${acg_path} in /etc*) ;; esac; then
+        lbu add "${acg_path}"
+      fi
+      do_set_auto_lbu_ci
+    else
+      set_acg_cfg "ALPINE_INSTALLATION_MODE" "sys"
+      . "${acg_path}/files/acg-cfg"
+    fi
+    
     do_set_clash_cfg_url
     do_set_arch
     do_set_clash_ec
@@ -262,11 +284,20 @@ do_install_acg() {
 
     rc-update --quiet add acg
 
+    if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
+      if [ "${AUTO_LBU_CI}" -eq 1 ]; then
+        lbu ci
+      else
+        if (whiptail --title "ACG Installation" --yesno "ACG has been installed and running. Do you wish to do lbu commit to save the changes to your system?" 10 60 3>&1 1>&2 2>&3) then
+          lbu ci
+        fi
+    fi
+
     echo "ACG has been installed."
     echo "Please set the client Gateway and DNS to the ip address of this host."
     echo "You can configure ACG with the following command"
     echo "${acg_path}/scripts/acg.sh"
-    exit 0
+    show_main
   else
     break
   fi
@@ -324,9 +355,10 @@ show_main() {
   "Y" "Update YACD" \
   "4" "${opt_4_text}" \
   "5" "Restart Clash" \
-  "6" "Set Architecture" \
   "7" "Set the URL of Clash configuration" \
   "8" "Set Clash External Controller" \
+  "L" "Set Auto LBU Commit" \
+  "6" "Set Architecture" \
   "9" "Uninstall ACG" \
   "10" "About ACG" \
   3>&1 1>&2 2>&3)
@@ -363,6 +395,9 @@ show_main() {
       ;;
     8)
           do_set_clash_ec
+      ;;
+    L)
+          do_set_auto_lbu_ci
       ;;
     9)
           do_uninstall_acg

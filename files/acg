@@ -34,5 +34,8 @@ start_post() {
 
 stop_pre() {
 	${acg_path}/scripts/proxy-selected.sh save
+	if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]] && [ "${AUTO_LBU_CI}" -eq 1 ]; then
+			lbu ci
+	fi
 }
 

@@ -1,5 +1,9 @@
 #acg configuration
 
+# installation mode
+ALPINE_INSTALLATION_MODE=sys
+AUTO_LBU_CI=0
+
 # cgroup net_cls classid
 BYPASS_CGROUP_CLASSID=114514
 
