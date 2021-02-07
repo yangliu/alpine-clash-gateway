@@ -212,6 +212,8 @@ do_lbu_ci() {
     else
       whiptail --title "LBU Commit" --msgbox "Failed to do LBU Commit." 10 60
     fi
+  else
+    whiptail --title "LBU Commit" --msgbox "This is only useful under Diskless mode." 10 60
   fi
 }
 
