@@ -180,7 +180,9 @@ do_set_acg_cfg() {
     fi
   fi
 }
-
+do_set_interface_name() {
+  do_set_acg_cfg "Set Interface Name" "Please specify the outbound interface (eg. eth0, ens1, wlan0)." "CLASH_INTERFACE_NAME"
+}
 do_set_arch() {
   do_set_acg_cfg "Set architecture" "Please provide your architecture (amd64, armv6 ...)." "CLASH_BIN_ARCH"
 }
@@ -372,6 +374,7 @@ show_main() {
   "5" "Restart Clash" \
   "C" "LBU Commit" \
   "7" "Set the URL of Clash configuration" \
+  "I" "Set Clash Outbound Interface" \
   "8" "Set Clash External Controller" \
   "L" "Set Auto LBU Commit" \
   "6" "Set Architecture" \
@@ -408,6 +411,9 @@ show_main() {
       ;;
     7)
           do_set_clash_cfg_url
+      ;;
+    I)
+          do_set_interface_name
       ;;
     8)
           do_set_clash_ec

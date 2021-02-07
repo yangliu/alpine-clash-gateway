@@ -26,6 +26,8 @@ CLASH_CONFIG_URL="https://"
 CLASH_PATH=not-set
 # Clash Bin Architecture
 CLASH_BIN_ARCH=amd64
+# Clash interface name
+CLASH_INTERFACE_NAME=eth0
 # Clash External Controller
 CLASH_EXTERNAL_CONTROLLER_PORT=9999
 CLASH_EXTERNAL_CONTROLLER_SECRET=999999

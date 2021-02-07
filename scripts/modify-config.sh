@@ -32,3 +32,4 @@ set_cfg_value(){
 set_cfg_value "external-controller" ":${CLASH_EXTERNAL_CONTROLLER_PORT}"
 set_cfg_value "secret" "${CLASH_EXTERNAL_CONTROLLER_SECRET}"
 set_cfg_value "external-ui" "${CLASH_EXTERNAL_CONTROLLER_UI}"
+set_cfg_value "interface-name" "${CLASH_INTERFACE_NAME}"

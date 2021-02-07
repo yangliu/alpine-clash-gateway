@@ -50,4 +50,8 @@ case "${uarch}" in
 esac
 sed -i "s/CLASH_BIN_ARCH=.*$/CLASH_BIN_ARCH=${arch}/g" "${acg_path}/files/acg-cfg-sample"
 
+# interface name
+guess_in=$(ip route | grep default | awk -e {'print $5'})
+sed -i "s/CLASH_INTERFACE_NAME=.*$/CLASH_INTERFACE_NAME=${guess_in}/g" "${acg_path}/files/acg-cfg-sample"
+
 ${acg_path}/scripts/acg.sh install
