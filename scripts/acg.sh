@@ -208,7 +208,7 @@ do_set_auto_lbu_ci() {
 
 do_lbu_ci() {
   if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
-    lbu ci
+    lbu ci -d
     if [ $? -eq 0 ]; then
       whiptail --title "LBU Commit" --msgbox "LBU Commit successfully." 10 60
     else
@@ -308,10 +308,10 @@ do_install_acg() {
 
     if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
       if [ "${AUTO_LBU_CI}" -eq 1 ]; then
-        lbu ci
+        lbu ci -d
       else
         if (whiptail --title "ACG Installation" --yesno "ACG has been installed and running. Do you wish to do lbu commit to save the changes to your system?" 10 60 3>&1 1>&2 2>&3) then
-          lbu ci
+          lbu ci -d
         fi
       fi
     fi
