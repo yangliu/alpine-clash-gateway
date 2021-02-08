@@ -294,6 +294,7 @@ do_install_acg() {
     fi
     
     do_set_clash_cfg_url
+    do_set_interface_name
     do_set_arch
     do_set_clash_ec
     do_1_key_update
