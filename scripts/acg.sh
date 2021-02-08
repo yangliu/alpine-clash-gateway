@@ -284,9 +284,14 @@ do_install_acg() {
     
     if (whiptail --title "Diskless Mode" --yes-button "Diskless Mode" --no-button "Sys Mode" --yesno "Is your Alpine installation in Diskless Mode?" 10 60 3>&1 1>&2 2>&3) then
       set_acg_cfg "ALPINE_INSTALLATION_MODE" "diskless"
-      if ! case ${acg_path} in /etc*) ;; esac; then
-        lbu add "${acg_path}"
-      fi
+      case ${acg_path} in 
+        /etc*)
+                :
+            ;;
+        *)
+                lbu add "${acg_path}"
+            ;;
+      esac
       do_set_auto_lbu_ci
     else
       set_acg_cfg "ALPINE_INSTALLATION_MODE" "sys"
