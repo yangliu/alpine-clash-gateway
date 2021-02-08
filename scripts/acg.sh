@@ -198,7 +198,7 @@ do_set_clash_ec() {
 }
 
 do_set_auto_lbu_ci() {
-    if (whiptail --title "Auto LBU Commit" --yesno "Do you wish to do lbu commit as ACG stops?" 10 60 3>&1 1>&2 2>&3) then
+    if (whiptail --title "Auto LBU Commit" --defaultno --yesno "Do you wish to do lbu commit as ACG stops?" 10 60 3>&1 1>&2 2>&3) then
       set_acg_cfg "AUTO_LBU_CI" "1"
     else
       set_acg_cfg "AUTO_LBU_CI" "0"
