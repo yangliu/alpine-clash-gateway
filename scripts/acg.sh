@@ -280,7 +280,7 @@ do_install_acg() {
     echo "Now we need to configure ACG."
 
     # diskless mode
-    "${acg_path}/files/acg-cfg"
+    . "${acg_path}/files/acg-cfg"
     
     if (whiptail --title "Diskless Mode" --yes-button "Diskless Mode" --no-button "Sys Mode" --yesno "Is your Alpine installation in Diskless Mode?" 10 60 3>&1 1>&2 2>&3) then
       set_acg_cfg "ALPINE_INSTALLATION_MODE" "diskless"
