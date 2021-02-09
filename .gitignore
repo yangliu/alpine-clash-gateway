@@ -2,6 +2,9 @@
 /files/acg-cfg
 dev-*
 
+# vscode
+.vscode
+
 # General
 .DS_Store
 .AppleDouble
