@@ -1,5 +1,5 @@
 #!/bin/sh
-ver="0.1.2"
+ver="0.1.3"
 
 if [ -z ${1} ]; then
   acg_path="/opt/acg"
@@ -30,8 +30,10 @@ unzip /tmp/acg.zip -d /tmp
 cp -R /tmp/alpine-clash-gateway-${ver}/* "${acg_path}/"
 escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
 sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/files/acg"
+sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/files/acg-httpd"
 sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/scripts/clash-proxy"
 sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" ${acg_path}/scripts/*.sh
+sed -i "s/acg_path=\"\/opt\/acg\"/acg_path=\"${escaped_acg_path}\"/g" "${acg_path}/www/cgi-bin/api"
 chmod +x "${acg_path}/scripts/acg.sh"
 
 # arch detection

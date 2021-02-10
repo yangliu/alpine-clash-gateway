@@ -19,6 +19,9 @@ FORWARD_DNS_REDIRECT=1.0.0.1:53
 # geoip mirror (github / aliyun)
 GEOIP_MIRROR=aliyun
 
+# ACG API
+ACG_API_PORT=8080
+
 # Clash Config URL
 CLASH_CONFIG_URL="https://"
 

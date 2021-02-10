@@ -25,6 +25,11 @@ is_acg_running() {
   fi
 }
 
+is_acg_api_running() {
+  rc-service -q acg-httpd status
+  return $?
+}
+
 do_update_clash_cfg() {
   ${acg_path}/scripts/update-clash.sh config
   es=$?
@@ -219,6 +224,25 @@ do_lbu_ci() {
   fi
 }
 
+do_set_acg_api() {
+  if is_acg_api_running ; then
+    rc-service acg-httpd stop
+    rc-update --quiet del acg-httpd
+  else
+    [ ! -f /usr/sbin/httpd ] && apk -q add busybox-extras
+    [ ! -f /etc/init.d/acg-httpd ] && ln -s "${acg_path}/files/acg-httpd" /etc/init.d/
+    rc-update --quiet add acg-httpd
+    rc-service acg-httpd start
+  fi
+  if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]] && [ "${AUTO_LBU_CI}" -eq 1 ]; then
+    lbu ci -d
+  fi
+}
+
+do_set_api_port() {
+  do_set_acg_cfg "Set ACG API Port" "Please enter the port of ACG REST API." "ACG_API_PORT"
+}
+
 do_install_acg() {
   escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
   # check newt
@@ -270,7 +294,7 @@ do_install_acg() {
 
     echo "Install Alpine Clash Gateway to ${acg_path}"
     mkdir -p "${acg_path}"
-    chmod -R +x "${acg_path}/files/acg" "${acg_path}/scripts"
+    chmod -R +x "${acg_path}/files/acg" "${acg_path}/files/acg-httpd" "${acg_path}/scripts"
 
     cp "${acg_path}/files/99-clash.rules.orig" "/etc/udev/rules.d/99-clash.rules"
     sed -i "s/|ACG_PATH|/${escaped_acg_path}/g" /etc/udev/rules.d/99-clash.rules
@@ -367,6 +391,12 @@ show_main() {
     opt_4_text="Start Clash"
   fi
 
+  if is_acg_api_running ; then
+    opt_api_text="Disable ACG REST API"
+  else
+    opt_api_text="Enable ACG REST API"
+  fi
+
   the_opt=$(whiptail --title "Alpine Clash Gateway (ACG)" \
   --cancel-button "Exit" \
   --notags \
@@ -382,6 +412,8 @@ show_main() {
   "7" "Set the URL of Clash configuration" \
   "I" "Set Clash Outbound Interface" \
   "8" "Set Clash External Controller" \
+  "API" "${opt_api_text}" \
+  "API_PORT" "Set REST API Port" \
   "L" "Set Auto LBU Commit" \
   "6" "Set Architecture" \
   "9" "Uninstall ACG" \
@@ -423,6 +455,12 @@ show_main() {
       ;;
     8)
           do_set_clash_ec
+      ;;
+    API)
+          do_set_acg_api
+      ;;
+    API_PORT)
+          do_set_api_port
       ;;
     L)
           do_set_auto_lbu_ci

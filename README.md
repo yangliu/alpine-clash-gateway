@@ -21,3 +21,11 @@ Started from 0.1.2, ACG supports Alpine installation in Diskless Mode. Diskless 
 2. Choose __Diskless Mode__ during the installation of ACG.
 
 However, Diskless mode also brings extra steps when you wanna persist settings (e.g., install and configure ACG). Please make sure to run _lbu ci_ to persist your changes. You can also do LBU Commit through the UI of ACG. ACG also provide an option to automatic LBU commit as ACG stops. This will allow ACG to run _lbu ci_ as ACG stop/restart, and during system shutdown/reboot. You can turn on this feature through ACG UI. However, we do not recommend to use this feature when your storage device is slow (e.g., an SD card), because it will significantly increase the time for ACG restart, system shutdown and reboot. It could also potentially commit some undesired changes that were made outside ACG.
+
+## REST API
+Started from 0.1.3, ACG supports a RESTful API to control ACG by http requests. It is useful to integrate ACG into other systems. 
+For example, we can ask ACG to fetch new configuration and restart Clash as we write a new config.yaml and upload to the webserver.
+To access the API, an HTTP request header should be added for authentication
+```
+SECRET: $CLASH_EXTERNAL_CONTROLLER_SECRET
+```

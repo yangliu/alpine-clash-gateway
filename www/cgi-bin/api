@@ -1,0 +1,179 @@
+#!/bin/sh
+
+acg_path="/opt/acg"
+
+# Load Configuration
+if [ -f "${acg_path}/files/acg-cfg" ]; then
+  . "${acg_path}/files/acg-cfg"
+else
+  echo "HTTP/1.0 400 Bad Request"
+  echo "Content-type: text/plain"
+  echo ""
+  echo "The configuration file is missing. Please re-run the installation script."
+  exit 1
+fi
+# Load Version
+. "${acg_path}/files/version"
+
+function is_acg_running() {
+  rc-service -q acg status
+  es=$?
+  return $es
+}
+
+function test_secret() {
+  if [ ! -z $HTTP_SECRET ] && [[ "$HTTP_SECRET" == "$CLASH_EXTERNAL_CONTROLLER_SECRET" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function http_header() {
+  http_code=$1
+  case $http_code in
+    200)
+          echo "HTTP/1.0 200 OK"
+        ;;
+    204)
+          echo "HTTP/1.0 204 No Content"
+        ;;
+    400)
+          echo "HTTP/1.0 400 Bad Request"
+        ;;
+    401)
+          echo "HTTP/1.0 401 Unauthorized"
+        ;;
+    403)
+          echo "HTTP/1.0 403 Forbidden"
+        ;;
+  esac
+  echo "Server: Alpine Clash Gateway (ACG)/${ACG_VERSION}"
+  echo "Content-type: application/json"
+  echo ""
+  case $http_code in
+    204)
+          exit 0
+        ;;
+    400)
+          exit 1
+        ;;
+    401)
+          exit 1
+        ;;
+    403)
+          exit 1
+        ;;
+  esac
+}
+
+function json_200_sd() {
+  http_header 200
+  echo "{"
+  echo "\"status\": \"${1}\","
+  echo "\"description\": \"${2}\""
+  echo "}"
+}
+
+
+# check authentication
+if (! test_secret) then
+  http_header 401
+fi
+
+# process request params
+eval $(echo "$QUERY_STRING" | awk -F'&' '{for(i=1;i<=NF;i++){print $i}}')
+if [ -z $action ]; then
+  http_header 400
+fi
+
+case "${action}" in
+  update)
+          if [[ "$REQUEST_METHOD" != "POST" ]]; then
+            http_header 400
+            exit 1
+          fi
+          read post_data
+          eval $(echo "$post_data" | awk -F'&' '{for(i=1;i<=NF;i++){print $i}}')
+          [ -z $restart ] && restart=0
+          if (! is_acg_running ) then
+            restart=0
+          fi
+          if [ -z $item ]; then
+            http_header 400
+            exit 1
+          fi
+          case "${item}" in
+            config)
+                    ${acg_path}/scripts/update-clash.sh config > /dev/null
+                    es=$?
+                    if [ $es -eq 0 ]; then
+                      if [ $restart -eq 0 ]; then
+                        res_status="success"
+                        res_description="Clash configure has been updated successfully."
+                      else
+                        rc-service acg restart > /dev/null
+                        if [ $? -eq 0 ]; then
+                          res_status="success"
+                          res_description="Clash configure has been updated and applied successfully."
+                        else
+                          res_status="restart-failed"
+                          res_description="Clash configuration has been updated, but failed to restart Clash."
+                        fi
+                      fi
+                    else
+                      if [ $es -eq 2 ]; then
+                        res_status="success"
+                        res_description="Clash configuration is up to date."
+                      else
+                        res_status="update-failed"
+                        res_description="Cannot update Clash Configuration."
+                      fi
+                    fi
+                    json_200_sd "${res_status}" "${res_description}"
+                    exit 0
+                  ;;
+            *)
+                    http_header 400
+                    exit 1
+                  ;;
+          esac
+        ;;
+  lbu)
+          if [[ "${ALPINE_INSTALLATION_MODE}" != "diskless" ]]; then
+            http_header 400
+            exit 1
+          fi
+          if [[ "$REQUEST_METHOD" != "POST" ]]; then
+            http_header 400
+            exit 1
+          fi
+          read post_data
+          eval $(echo "$post_data" | awk -F'&' '{for(i=1;i<=NF;i++){print $i}}')
+          if [ -z $cmd ]; then
+            http_header 400
+            exit 1
+          fi
+          case "${cmd}" in
+            ci | commit)
+                          lbu ci -d -q
+                          es=$?
+                          if [ $es -eq 0 ]; then
+                            res_status="success"
+                            res_description="lbu commit successfully."
+                          else
+                            res_status="failed"
+                            res_description="Failed to lbu commit."
+                          fi
+                          json_200_sd "${res_status}" "${res_description}"
+                        ;;
+            *)
+                          http_header 400
+                          exit 1
+                        ;;
+          esac
+        ;;
+  *)
+          http_header 400
+        ;;
+esac
