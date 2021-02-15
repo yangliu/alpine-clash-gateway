@@ -47,6 +47,12 @@ case "${uarch}" in
   ;;
   armhf)    arch="armv6"
   ;;
+  armv7*)    arch="armv7"
+  ;;
+  armv6*)    arch="armv6"
+  ;;
+  armv5*)    arch="armv5"
+  ;;
   *)        arch="${uarch}"
   ;;
 esac
