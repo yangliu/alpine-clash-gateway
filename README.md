@@ -7,11 +7,11 @@ Quickly convert your Alpine Linux host/vm into a Clash-based gateway.
 2. Please configure your network during the installation. Static IP is recommended but not mandatory.
 3. Run following command, and follow the instruction.
 ```
-wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.2/scripts/install.sh | sh
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.3/scripts/install.sh | sh
 ```
 or
 ```
-wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.2/scripts/install.sh | sh -s /etc/acg
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.3/scripts/install.sh | sh -s /etc/acg
 ```
 
 ## Diskless Mode
