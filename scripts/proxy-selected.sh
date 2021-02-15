@@ -13,20 +13,25 @@ fi
 . "${acg_path}/files/version"
 
 save(){
-  curl -s -H "Authorization: Bearer ${CLASH_EXTERNAL_CONTROLLER_SECRET}" \
-    -H "Content-Type:application/json" \
-    "http://localhost:${CLASH_EXTERNAL_CONTROLLER_PORT}/proxies" \
-    | awk -F "{" '{for(i=1;i<=NF;i++) print $i}' \
-    | grep -E '^"all".*"Selector"' > /tmp/acg-proxy-selected-save
-  while read line ; do
-    def=$(echo $line | awk -F "[\[,]" '{print $2}')
-    now=$(echo $line | grep -oE '"now".*",' | sed 's/"now"://g'| sed 's/,//g')
-    [ "$def" != "$now" ] && echo $line | grep -oE '"name".*"now".*",' | sed 's/"name"://g' | sed 's/"now"://g'| sed 's/"//g' >> /tmp/acg-proxy-selected-save2
-  done < /tmp/acg-proxy-selected-save
-  rm -rf /tmp/acg-proxy-selected-save
-
-  if [ -s /tmp/acg-proxy-selected-save2 ]; then
-    mv /tmp/acg-proxy-selected-save2 "${CLASH_PATH}/proxy-selected"
+  curl -s \
+  -o /tmp/clash_proxies.json \
+  -H "Authorization: Bearer ${CLASH_EXTERNAL_CONTROLLER_SECRET}" \
+  -H "Content-Type:application/json" \
+  "http://localhost:${CLASH_EXTERNAL_CONTROLLER_PORT}/proxies"
+  if [ $? -eq 0 ] && [ -f /tmp/clash_proxies.json ]; then
+    [ -f /tmp/proxy-selected-tmp ] && rm /tmp/proxy-selected-tmp
+    jq '.proxies | keys' /tmp/clash_proxies.json | 
+    grep '".*"' | sed 's/^\s*"//g' | sed 's/,$//g' | sed 's/"$//g' |
+    while IFS= read -r proxy_group; do
+      proxy_group_escape="\"${proxy_group}\""
+      proxy_group_type=$(jq -r ".proxies.${proxy_group_escape}.type" /tmp/clash_proxies.json)
+      if [[ "${proxy_group_type}" == "Selector" ]]; then
+        proxy_now=$(jq -r ".proxies.${proxy_group_escape}.now" /tmp/clash_proxies.json)
+        echo "${proxy_group},${proxy_now}" >> /tmp/proxy-selected-tmp
+      fi
+    done
+    [ -f /tmp/proxy-selected-tmp ] && mv /tmp/proxy-selected-tmp "${CLASH_PATH}/proxy-selected"
+    rm /tmp/clash_proxies.json
   fi
 }
 
@@ -42,17 +47,15 @@ load(){
     [ -n "$test" ] && i=10
   done
 
-  num=$(cat ${CLASH_PATH}/proxy-selected | wc -l)
-  for i in `seq $num`;
-  do
-    group_name=$(awk -F ',' 'NR=="'${i}'" {print $1}' ${CLASH_PATH}/proxy-selected | sed 's/ /%20/g')
-    now_name=$(awk -F ',' 'NR=="'${i}'" {print $2}' ${CLASH_PATH}/proxy-selected)
+  while read proxy_line; do
+    group_name=$(echo "${proxy_line}" | awk -F ',' '{print $1}' | sed 's/ /%20/g')
+    now_name=$(echo "${proxy_line}" | awk -F ',' '{print $2}')
     curl -sS -X PUT  \
           -H "Authorization: Bearer ${CLASH_EXTERNAL_CONTROLLER_SECRET}" \
           -H "Content-Type:application/json" \
           -d "{\"name\":\"${now_name}\"}" \
           "http://localhost:${CLASH_EXTERNAL_CONTROLLER_PORT}/proxies/${group_name}" >/dev/null
-  done
+  done < "${CLASH_PATH}/proxy-selected"
 }
 
 case "$1" in
