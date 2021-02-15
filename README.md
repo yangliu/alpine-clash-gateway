@@ -1,6 +1,6 @@
 # Alpine Clash Gateway (ACG)
 
-Quickly convert your Alpine Linux host/vm into a Clash-based gateway. Test
+Quickly convert your Alpine Linux host/vm into a Clash-based gateway.
 
 ## Usage
 1. Install Alpine Linux with `setup-alpine`.
