@@ -134,8 +134,6 @@ do_1_key_update() {
     updated_str=$(echo "${updated_str}" | xargs)
     if (whiptail --title "ACG Updater" --yesno "Found changes in ${updated_str}. Do you want to restart Clash?" 10 60) then
       rc-service acg restart
-    else
-      break
     fi
   else
     whiptail --title "ACG Updater" --msgbox "Clash core, GeoIP DB, and config.yaml are all up to date." 10 60
@@ -374,6 +372,32 @@ do_uninstall_acg() {
   fi
 }
 
+show_set_routemode() {
+  nft_test=$(nft list ruleset | grep "ip protocol tcp redirect to")
+  if [ -z "${nft_test}" ]; then
+    current_mode="tun"
+  else
+    current_mode="redir_tun"
+  fi
+
+  new_mode=$(whiptail --title "Set Routing Mode" \
+  --cancel-button "Back" \
+  --menu "Current Mode: ${current_mode} | Current Setting: ${ROUTING_MODE}" 12 60 4 \
+  "auto" "Automatic" \
+  "redir_tun" "Redir (tcp) + TUN (udp)" \
+  "tun" "TUN (tcp+udp)" \
+  3>&1 1>&2 2>&3)
+  es=$?
+  if [ $es -eq 0 ]; then
+    if [[ "${new_mode}" != "${ROUTING_MODE}" ]]; then
+      set_acg_cfg "ROUTING_MODE" "${new_mode}"
+      . "${acg_path}/files/acg-cfg"
+      if (whiptail --title "Set Routing Mode" --yesno "Routing mode has been changed. Do you want to restart Clash?" 10 60) then
+        rc-service acg restart
+      fi
+    fi
+  fi
+}
 
 show_about() {
   whiptail --title "Alpine Clash Gateway" --msgbox "\
@@ -400,7 +424,7 @@ show_main() {
   the_opt=$(whiptail --title "Alpine Clash Gateway (ACG)" \
   --cancel-button "Exit" \
   --notags \
-  --menu "" 18 60 11 \
+  --menu "" 20 60 13 \
   "1" "Update Clash configuration" \
   "A" "One-key Update (config.yaml, clash, & geoip)" \
   "2" "Update Clash core" \
@@ -410,6 +434,7 @@ show_main() {
   "5" "Restart Clash" \
   "C" "LBU Commit" \
   "7" "Set the URL of Clash configuration" \
+  "R" "Set Routing Mode" \
   "I" "Set Clash Outbound Interface" \
   "8" "Set Clash External Controller" \
   "API" "${opt_api_text}" \
@@ -449,6 +474,9 @@ show_main() {
       ;;
     7)
           do_set_clash_cfg_url
+      ;;
+    R)
+          show_set_routemode
       ;;
     I)
           do_set_interface_name
