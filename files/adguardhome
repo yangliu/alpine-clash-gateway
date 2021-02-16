@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+command="/opt/AdGuardHome/AdGuardHome"
+pidfile="/run/${RC_SVCNAME}.pid"
+command_args="-s run --pidfile ${pidfile} -w /opt/AdGuardHome"
+command_background=true
+name="AdGuard Home"
+description="Alpine Clash Gateway start-up script for OpenRC"
+
+depend() {
+	need net
+	use dns
+}
+
