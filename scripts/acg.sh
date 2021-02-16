@@ -30,6 +30,16 @@ is_acg_api_running() {
   return $?
 }
 
+is_agh_running() {
+  rc-service -q adguardhome status
+  return $?
+}
+
+get_current_ip() {
+  ip=$(ifconfig | grep -A 1 "${CLASH_INTERFACE_NAME}" | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)
+  echo "${ip}"
+}
+
 do_update_clash_cfg() {
   ${acg_path}/scripts/update-clash.sh config
   es=$?
@@ -241,6 +251,69 @@ do_set_api_port() {
   do_set_acg_cfg "Set ACG API Port" "Please enter the port of ACG REST API." "ACG_API_PORT"
 }
 
+do_set_agh() {
+  if is_agh_running ; then
+    if (whiptail --title "Disable AdGuard Home" --yesno "You are about to disable AdGuard Home. Continue?" 10 60) then
+      rc-service adguardhome stop
+      rc-update --quiet del adguardhome
+      rc-service acg restart
+      if (whiptail --title "Disable AdGuard Home" --yesno "AdGuard Home has been stopped. Do you want to uninstall it completely?" 10 60) then
+        rm /etc/init.d/adguardhome
+        rm -rf /opt/AdGuardHome
+      if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
+        lbu ex /opt/AdGuardHome
+      fi
+      fi
+    fi
+  else
+    if [ ! -f /opt/AdGuardHome/AdGuardHome ]; then
+      #install agh
+      echo "Install AdGuardHome to /opt/AdGuardHome"
+      curl -sSL https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/scripts/install.sh | sh
+      es=$?
+      if [ $es -ne 0 ]; then
+        whiptail --title "Enable AdGuard Home" --msgbox "Failed to install AdGuard Home. Please check your internet and re-install it again." 10 60
+        exit $es
+      fi
+      echo "Remove incompatible init script and replace with ACG version."
+      /opt/AdGuardHome/AdGuardHome -s uninstall
+      [ -f /etc/init.d/adguardhome ] && rm /etc/init.d/adguardhome
+      ln -s "${acg_path}/files/adguardhome" /etc/init.d/
+      acg_ip=$(get_current_ip)
+      acg_port=7833
+      agh_cfg_file="${acg_path}/files/AdGuardHome.yaml"
+      if [ ! -f "${agh_cfg_file}" ]; then 
+        cp "${acg_path}/files/AdGuardHome-sample.yaml" "${agh_cfg_file}"
+        yq w -i "${agh_cfg_file}" 'bind_host' "${acg_ip}"
+        yq w -i "${agh_cfg_file}" 'bind_port' "${acg_port}"
+        yq w -i "${agh_cfg_file}" 'dns.bind_host' "${acg_ip}"
+        yq w -i "${agh_cfg_file}" 'dns.port' "1053"
+      fi
+      ln -s "${agh_cfg_file}" /opt/AdGuardHome/
+      [ ! -d /opt/AdGuardHome/data ] && mkdir -p /opt/AdGuardHome/data
+      if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
+        lbu add /opt/AdGuardHome
+        lbu ex /opt/AdGuardHome/data
+      fi
+    fi
+    echo "Launch AdGuardHome"
+    rc-service adguardhome start
+    rc-update --quiet add adguardhome
+    echo "Restart ACG"
+    rc-service acg restart
+    read -r -d '' msg <<- EOM
+AdGuard Home has been installed successfully.
+Please visit http://${acg_ip}:${acg_port} to setup AdGuard Home.
+Username: acg  Password: acg
+For most users, please set Clash DNS server (${acg_ip}:${CLASH_DNS_PORT}) as the upstream DNS globally.
+EOM
+    whiptail --title "Enable AdGuard Home" --msgbox "${msg}" 15 60
+  fi
+  if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]] && [ "${AUTO_LBU_CI}" -eq 1 ]; then
+    lbu ci -d
+  fi
+}
+
 do_install_acg() {
   escaped_acg_path=$(printf '%s\n' "${acg_path}" | sed -e 's/[]\/$*.^[]/\\&/g');
   # check newt
@@ -266,7 +339,7 @@ do_install_acg() {
 
   if (whiptail --title "Alpine Clash Gateway" --yesno "This script will install Alpine Clash Gateway (ACG). It will turn your Alpine Linux host into a Clash gateway. Do you want to continue?" 10 60) then
     echo "Install all dependent packages"
-    apk add --update nftables iproute2 udev curl jq
+    apk add --update nftables iproute2 udev curl jq yq
     if [ $? != 0 ]; then
       echo "Cannot satisfy the requirements. Please check your internet and your apk repositories. Make sure to enable the community repo."
     fi
@@ -327,6 +400,10 @@ do_install_acg() {
     do_1_key_update
 
     rc-update --quiet add acg
+
+    if (whiptail --title "AdGuard Home" --yesno "Would you like to install AdGuard Home DNS server" 10 60) then
+      do_set_agh
+    fi
 
     if [[ "${ALPINE_INSTALLATION_MODE}" == "diskless" ]]; then
       if [ "${AUTO_LBU_CI}" -eq 1 ]; then
@@ -421,6 +498,12 @@ show_main() {
     opt_api_text="Enable ACG REST API"
   fi
 
+  if is_agh_running ; then
+    opt_agh_text="Disable AdGuard Home"
+  else
+    opt_agh_text="Enable AdGuard Home"
+  fi
+
   the_opt=$(whiptail --title "Alpine Clash Gateway (ACG)" \
   --cancel-button "Exit" \
   --notags \
@@ -434,9 +517,10 @@ show_main() {
   "5" "Restart Clash" \
   "C" "LBU Commit" \
   "7" "Set the URL of Clash configuration" \
-  "R" "Set Routing Mode" \
+  "R" "Set ACG Routing Mode" \
   "I" "Set Clash Outbound Interface" \
   "8" "Set Clash External Controller" \
+  "AGH" "${opt_agh_text}" \
   "API" "${opt_api_text}" \
   "API_PORT" "Set REST API Port" \
   "L" "Set Auto LBU Commit" \
@@ -483,6 +567,9 @@ show_main() {
       ;;
     8)
           do_set_clash_ec
+      ;;
+    AGH)
+          do_set_agh
       ;;
     API)
           do_set_acg_api

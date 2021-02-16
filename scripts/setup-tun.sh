@@ -12,16 +12,26 @@ fi
 # Load Version
 . "${acg_path}/files/version"
 
+is_agh_running() {
+  rc-service -q adguardhome status
+  return $?
+}
+
+get_current_ip() {
+  ip=$(ifconfig | grep -A 1 "${CLASH_INTERFACE_NAME}" | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)
+  echo "${ip}"
+}
+
+
 CLASH_CONFIG="${CLASH_PATH}/config.yaml"
 if [ ! -f "${CLASH_CONFIG}" ]; then
   echo "Cannot find ${CLASH_CONFIG}."
   exit 1
 fi
-grep "redir-port:" $CLASH_CONFIG > /dev/null
-if [ $? -eq 0 ]; then
+
+redir_port=$(yq r "${CLASH_CONFIG}" 'redir-port')
+if [ ! -z $redir_port ]; then
     routing_mode="redir_tun"
-    redir_port=$(grep "redir-port:" $CLASH_CONFIG  | awk -F':' '{print $2}' | tr -d " ")
-    [ -z $redir_port ] && routing_mode="tun"
 else
     routing_mode="tun"
 fi
@@ -40,6 +50,17 @@ case "${ROUTING_MODE}" in
             :
         ;;
 esac
+
+if is_agh_running ; then
+    agh_config="/opt/AdGuardHome/AdGuardHome.yaml"
+    agh_dns_host=$(get_current_ip)
+    agh_dns_port=$(yq r "${agh_config}" 'dns.port')
+    if [ -z "${agh_dns_bhost}" ] || [ -z "${agh_dns_port}" ]; then
+        :
+    else
+        FORWARD_DNS_REDIRECT="${agh_dns_host}:${agh_dns_port}"
+    fi
+fi
 
 ip route replace default dev utun table "$IPROUTE2_TABLE_ID"
 
