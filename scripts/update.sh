@@ -54,11 +54,11 @@ while read -r line; do
   fi
 done < "${cfg_file}"
 
-echo "ACG has been updated. Please consider restarting ACG."
-exit 0
-
 # dependences
 which yq > /dev/null
 if [ $? -ne 0 ]; then
   apk add yq
 fi
+
+echo "ACG has been updated. Please consider restarting ACG."
+exit 0
