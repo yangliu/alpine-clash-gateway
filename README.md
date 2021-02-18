@@ -7,12 +7,21 @@ Quickly convert your Alpine Linux host/vm into a Clash-based gateway.
 2. Please configure your network during the installation. Static IP is recommended but not mandatory.
 3. Run following command, and follow the instruction.
 ```
-wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.3/scripts/install.sh | sh
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.4/scripts/install.sh | sh
 ```
 or
 ```
-wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.3/scripts/install.sh | sh -s /etc/acg
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.4/scripts/install.sh | sh -s /etc/acg
 ```
+## Update to current version
+```
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.4/scripts/update.sh | sh
+```
+or
+```
+wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@0.1.4/scripts/update.sh | sh -s /etc/acg
+```
+
 
 ## Diskless Mode
 Started from 0.1.2, ACG supports Alpine installation in Diskless Mode. Diskless Mode brings a lot of benefits including less-writings to the storage, easily survive from power loss, easy to backup settings, etc. This is especially useful when you plan to deploy your Clash gateway on an embeded device such as a Raspberry Pi (We actually tested ACG on a Raspberry Pi 4). To use Diskless Mode, please ensure
