@@ -1,6 +1,7 @@
 #!/bin/sh
 ver="main"
 
+#wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@main/scripts/update.sh | sh -s /opt/acg
 if [ -z ${1} ]; then
   acg_path="/opt/acg"
 else
@@ -48,7 +49,7 @@ while read -r line; do
   echo "${line}" | grep -e '.*=.*' > /dev/null
   if [ $? -eq 0 ]; then
     var_name=$(echo "${line}" | awk -F '=' '{print $2}')
-    set_acg_cfg "${var_name}" "$(echo $(eval echo \${$var_name}))"
+    set_acg_cfg "${var_name}" "$(eval echo \${$var_name})"
   fi
 done < "${cfg_file}"
 
