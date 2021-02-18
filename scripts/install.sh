@@ -1,5 +1,5 @@
 #!/bin/sh
-ver="0.1.3"
+ver="0.1.4"
 
 if [ -z ${1} ]; then
   acg_path="/opt/acg"

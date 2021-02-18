@@ -1,5 +1,5 @@
 #!/bin/sh
-ver="main"
+ver="0.1.4"
 
 #wget -O - https://cdn.jsdelivr.net/gh/yangliu/alpine-clash-gateway@main/scripts/update.sh | sh -s /opt/acg
 if [ -z ${1} ]; then
