@@ -49,7 +49,7 @@ while read -r line; do
   echo "${line}" | grep -e '.*=.*' > /dev/null
   if [ $? -eq 0 ]; then
     var_name=$(echo "${line}" | awk -F '=' '{print $1}')
-    var_value=$(eval echo \${$var_name})
+    var_value="$(eval echo \${$var_name})"
     [ ! -z "${var_value}" ] && set_acg_cfg "${var_name}" "${var_value}"
   fi
 done < "${cfg_file}"
