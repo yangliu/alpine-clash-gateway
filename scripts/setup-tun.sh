@@ -55,7 +55,7 @@ if is_agh_running ; then
     agh_config="/opt/AdGuardHome/AdGuardHome.yaml"
     agh_dns_host=$(get_current_ip)
     agh_dns_port=$(yq r "${agh_config}" 'dns.port')
-    if [ -z "${agh_dns_bhost}" ] || [ -z "${agh_dns_port}" ]; then
+    if [ -z "${agh_dns_host}" ] || [ -z "${agh_dns_port}" ]; then
         :
     else
         FORWARD_DNS_REDIRECT="${agh_dns_host}:${agh_dns_port}"

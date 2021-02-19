@@ -26,12 +26,12 @@ is_acg_running() {
 }
 
 is_acg_api_running() {
-  rc-service -q acg-httpd status
+  rc-service -q acg-httpd status 2>&1 >/dev/null
   return $?
 }
 
 is_agh_running() {
-  rc-service -q adguardhome status
+  rc-service -q adguardhome status 2>&1 >/dev/null
   return $?
 }
 
