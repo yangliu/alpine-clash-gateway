@@ -277,6 +277,7 @@ do_set_agh() {
       fi
       echo "Remove incompatible init script and replace with ACG version."
       /opt/AdGuardHome/AdGuardHome -s uninstall
+      kill -9 $(pgrep "/opt/AdGuardHome/AdGuardHome")
       [ -f /etc/init.d/adguardhome ] && rm /etc/init.d/adguardhome
       ln -s "${acg_path}/files/adguardhome" /etc/init.d/
       acg_ip=$(get_current_ip)
