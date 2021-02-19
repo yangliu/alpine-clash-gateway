@@ -177,12 +177,11 @@ table ip clash {
         type nat hook prerouting priority dstnat; policy accept;
 
         ip protocol != { tcp, udp } accept
-        iif utun accept
-        ip daddr \$LOCAL_SUBNET accept
-        
         udp dport 53 dnat $FORWARD_DNS_REDIRECT
         tcp dport 53 dnat $FORWARD_DNS_REDIRECT
 
+        iif utun accept
+        ip daddr \$LOCAL_SUBNET accept
         ip protocol tcp redirect to :$redir_port 
     }
     
