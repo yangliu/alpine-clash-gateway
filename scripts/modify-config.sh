@@ -22,4 +22,4 @@ yq w -i "${CLASH_CONFIG}" 'external-controller' ":${CLASH_EXTERNAL_CONTROLLER_PO
 yq w -i "${CLASH_CONFIG}" 'secret' "${CLASH_EXTERNAL_CONTROLLER_SECRET}"
 yq w -i "${CLASH_CONFIG}" 'external-ui' "${CLASH_EXTERNAL_CONTROLLER_UI}"
 yq w -i "${CLASH_CONFIG}" 'interface-name' "${CLASH_INTERFACE_NAME}"
-yq w -i "${CLASH_CONFIG}" 'dns.listen' "127.0.0.1:${CLASH_DNS_PORT}"
+yq w -i "${CLASH_CONFIG}" 'dns.listen' ":${CLASH_DNS_PORT}"
